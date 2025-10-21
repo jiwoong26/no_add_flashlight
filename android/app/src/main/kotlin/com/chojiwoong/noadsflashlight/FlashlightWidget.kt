@@ -7,11 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 
 /**
  * 플래시라이트 홈 화면 위젯
@@ -20,15 +22,17 @@ class FlashlightWidget : AppWidgetProvider() {
     
     companion object {
         const val ACTION_TOGGLE_FLASHLIGHT = "com.chojiwoong.noadsflashlight.TOGGLE_FLASHLIGHT"
-        private const val PREFS_NAME = "flashlight_widget_prefs"
-        private const val PREF_IS_ON = "is_flashlight_on"
+        // Flutter SharedPreferences와 동일한 이름 사용
+        private const val PREFS_NAME = "FlutterSharedPreferences"
+        private const val PREF_IS_ON = "flutter.flashlight_is_on"
+        private const val PREF_BRIGHTNESS = "flutter.flashlight_brightness"
         private const val TAG = "FlashlightWidget"
         
         private var cameraManager: CameraManager? = null
         private var cameraId: String? = null
         
         /**
-         * 플래시 상태 가져오기
+         * 플래시 상태 가져오기 (Flutter와 동기화)
          */
         private fun isFlashlightOn(context: Context): Boolean {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -36,15 +40,53 @@ class FlashlightWidget : AppWidgetProvider() {
         }
         
         /**
-         * 플래시 상태 저장
+         * 플래시 상태 저장 (Flutter와 동기화)
          */
         private fun setFlashlightState(context: Context, isOn: Boolean) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().putBoolean(PREF_IS_ON, isOn).apply()
+            val success = prefs.edit().putBoolean(PREF_IS_ON, isOn).commit()
+            Log.d(TAG, "Flashlight state saved: $isOn (commit success: $success)")
         }
         
         /**
-         * 플래시 토글
+         * 현재 밝기 확인 (Flutter와 동기화)
+         * Flutter의 SharedPreferences는 double을 String으로 저장하므로 String으로 읽어야 함
+         */
+        private fun getCurrentBrightness(context: Context): Float {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return try {
+                // Flutter는 double을 String으로 저장
+                val brightnessStr = prefs.getString(PREF_BRIGHTNESS, "1.0")
+                brightnessStr?.toFloatOrNull() ?: 1.0f
+            } catch (e: Exception) {
+                Log.e(TAG, "Error reading brightness: ${e.message}")
+                1.0f
+            }
+        }
+        
+        /**
+         * 최대 토치 밝기 레벨 가져오기 (Android 13+)
+         */
+        private fun getMaxTorchStrength(context: Context): Int {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                try {
+                    if (cameraManager == null) {
+                        cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                    }
+                    cameraId?.let { id ->
+                        val characteristics = cameraManager?.getCameraCharacteristics(id)
+                        characteristics?.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
+                    } ?: 1
+                } catch (e: Exception) {
+                    1
+                }
+            } else {
+                1
+            }
+        }
+        
+        /**
+         * 플래시 토글 (밝기 적용)
          */
         private fun toggleFlashlight(context: Context): Boolean {
             try {
@@ -68,7 +110,32 @@ class FlashlightWidget : AppWidgetProvider() {
                     val newState = !isCurrentlyOn
                     
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        cameraManager?.setTorchMode(cameraId!!, newState)
+                        if (newState) {
+                            // 플래시 켜기 - 위젯은 항상 최대 밝기로 동작
+                            val brightness = 1.0f
+                            
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                // Android 13+: 최대 밝기로 설정
+                                val maxStrength = getMaxTorchStrength(context)
+                                cameraManager?.turnOnTorchWithStrengthLevel(cameraId!!, maxStrength)
+                                Log.d(TAG, "Flashlight ON from widget with MAX brightness (level: $maxStrength)")
+                            } else {
+                                // Android 12 이하: ON/OFF만 가능
+                                cameraManager?.setTorchMode(cameraId!!, true)
+                                Log.d(TAG, "Flashlight ON from widget (brightness control not supported)")
+                            }
+                            
+                            // Foreground Service 시작 (앱이 kill되어도 플래시 유지)
+                            startFlashlightService(context, brightness)
+                        } else {
+                            // 플래시 끄기
+                            cameraManager?.setTorchMode(cameraId!!, false)
+                            Log.d(TAG, "Flashlight OFF")
+                            
+                            // Foreground Service 중지
+                            stopFlashlightService(context)
+                        }
+                        
                         setFlashlightState(context, newState)
                         
                         Toast.makeText(
@@ -100,6 +167,37 @@ class FlashlightWidget : AppWidgetProvider() {
             }
             Log.w(TAG, "toggleFlashlight failed - no camera available")
             return false
+        }
+        
+        /**
+         * Foreground Service 시작
+         */
+        private fun startFlashlightService(context: Context, brightness: Float) {
+            try {
+                val intent = Intent(context, FlashlightForegroundService::class.java).apply {
+                    action = FlashlightForegroundService.ACTION_START
+                    putExtra(FlashlightForegroundService.EXTRA_BRIGHTNESS, brightness)
+                }
+                ContextCompat.startForegroundService(context, intent)
+                Log.d(TAG, "Foreground service start requested from widget")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error starting foreground service from widget", e)
+            }
+        }
+        
+        /**
+         * Foreground Service 중지
+         */
+        private fun stopFlashlightService(context: Context) {
+            try {
+                val intent = Intent(context, FlashlightForegroundService::class.java).apply {
+                    action = FlashlightForegroundService.ACTION_STOP
+                }
+                context.startService(intent)
+                Log.d(TAG, "Foreground service stop requested from widget")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error stopping foreground service from widget", e)
+            }
         }
     }
     
@@ -171,9 +269,9 @@ internal fun updateAppWidget(
 ) {
     Log.d("FlashlightWidget", "updateAppWidget called for widget $appWidgetId")
     
-    // 현재 플래시 상태 가져오기
-    val prefs = context.getSharedPreferences("flashlight_widget_prefs", Context.MODE_PRIVATE)
-    val isOn = prefs.getBoolean("is_flashlight_on", false)
+    // 현재 플래시 상태 가져오기 (Flutter와 동기화)
+    val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+    val isOn = prefs.getBoolean("flutter.flashlight_is_on", false)
     
     Log.d("FlashlightWidget", "Flashlight state: $isOn")
     
@@ -218,13 +316,13 @@ internal fun updateAppWidget(
             views.setTextViewText(R.id.widget_text, "ON")
         }
     } else {
-        // 플래시 꺼짐 - 회색 배경, 회색 아이콘
+        // 플래시 꺼짐 - 회색 배경, 흰색 아이콘
         views.setImageViewResource(R.id.widget_icon, R.drawable.ic_flashlight_off)
         views.setInt(R.id.widget_button, "setBackgroundResource", R.drawable.flashlight_widget_background_off)
         
         // 큰 위젯인 경우에만 텍스트 표시
         if (!isSmall) {
-            views.setTextColor(R.id.widget_text, 0xFF757575.toInt()) // 회색
+            views.setTextColor(R.id.widget_text, 0xFFE0E0E0.toInt()) // 밝은 회색
             views.setTextViewText(R.id.widget_text, "OFF")
         }
     }

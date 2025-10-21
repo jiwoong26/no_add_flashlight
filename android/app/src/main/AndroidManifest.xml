@@ -1,8 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 카메라 및 플래시 권한 -->
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- 플래시 권한 (밝기 조절 포함) -->
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
-    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-feature android:name="android.hardware.camera.flash" android:required="false"/>
     
     <application
@@ -49,6 +50,17 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/flashlight_widget_info" />
         </receiver>
+        
+        <!-- 플래시라이트 Foreground Service -->
+        <service
+            android:name=".FlashlightForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="플래시라이트를 백그라운드에서 유지하기 위해 사용됩니다" />
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

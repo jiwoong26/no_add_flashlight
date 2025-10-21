@@ -29,10 +29,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      // 앱이 백그라운드로 가거나 종료될 때 플래시 끄기
-      _flashlight.turnOff();
+    print('🔵 HomeScreen - AppLifecycleState: $state');
+    if (state == AppLifecycleState.paused) {
+      // 앱이 백그라운드로 갈 때 위젯 업데이트
+      print('🔵 HomeScreen - App paused, updating widget');
+      _flashlight.updateWidget();
+    } else if (state == AppLifecycleState.resumed) {
+      // 앱이 다시 포그라운드로 올 때 상태 동기화
+      print('🔵 HomeScreen - App resumed, syncing state in 100ms');
+      // 약간의 지연을 두고 실행하여 Flutter 엔진이 준비되도록 함
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _syncFlashlightState();
+      });
+    }
+  }
+
+  Future<void> _syncFlashlightState() async {
+    print('🔵 HomeScreen - _syncFlashlightState START, current isOn: ${_flashlight.isOn}');
+    // SharedPreferences에서 실제 상태 로드하고 UI 업데이트
+    await _flashlight.loadState();
+    print('🔵 HomeScreen - _syncFlashlightState AFTER loadState, isOn: ${_flashlight.isOn}');
+    if (mounted) {
+      setState(() {});
+      print('🔵 HomeScreen - setState() called, UI updated');
+    } else {
+      print('❌ HomeScreen - Widget not mounted, setState() skipped');
     }
   }
 
@@ -62,7 +83,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final success = await _flashlight.toggle();
     
-    if (!success && mounted) {
+    if (success) {
+      // 성공 시 위젯 업데이트
+      await _flashlight.updateWidget();
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -75,6 +99,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       );
     }
     
+    setState(() {});
+  }
+
+  Future<void> _handleBrightnessChange(double value) async {
+    await _flashlight.setBrightness(value);
     setState(() {});
   }
 
@@ -223,10 +252,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         : theme.colorScheme.primary,
                                     inactiveColor: Colors.grey.shade300,
                                     onChanged: _isAvailable
-                                        ? (value) {
-                                            setState(() {
-                                              _flashlight.setBrightness(value);
-                                            });
+                                        ? (value) async {
+                                            await _handleBrightnessChange(value);
                                           }
                                         : null,
                                   ),
@@ -240,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '참고: 대부분의 기기에서 밝기 조절은 하드웨어적으로 지원되지 않습니다.',
+                            'Android 13 이상에서 밝기 조절이 가능합니다.',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                             ),

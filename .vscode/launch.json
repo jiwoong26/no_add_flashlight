@@ -2,32 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "no_add_flashlight (Debug)",
+      "name": "Debug",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
       "program": "lib/main.dart"
     },
     {
-      "name": "no_add_flashlight (Android Emulator)",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "debug",
-      "program": "lib/main.dart",
-      "args": [
-        "-d",
-        "emulator-5554"
-      ]
-    },
-    {
-      "name": "no_add_flashlight (Profile)",
+      "name": "Profile",
       "request": "launch",
       "type": "dart",
       "flutterMode": "profile",
       "program": "lib/main.dart"
     },
     {
-      "name": "no_add_flashlight (Release)",
+      "name": "Release",
       "request": "launch",
       "type": "dart",
       "flutterMode": "release",
