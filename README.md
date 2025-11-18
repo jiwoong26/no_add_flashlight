@@ -159,6 +159,10 @@ android/
 - **조지웅** - [chojiwoong.com](https://chojiwoong.com)
 - Email: chojiwoong.dev@gmail.com
 
+### 🔒 개인정보처리방침
+
+- [https://jiwoong26.github.io/no_add_flashlight/privacy-policy](https://jiwoong26.github.io/no_add_flashlight/privacy-policy)
+
 ### 💬 문의 및 버그 제보
 
 버그를 발견하거나 기능 제안이 있으시면 [Issues](https://github.com/yourusername/noadsflashlight/issues) 페이지에서 알려주세요.
@@ -311,6 +315,10 @@ This project is distributed under the MIT License. See the [LICENSE](LICENSE) fi
 
 - **Jiwoong Cho** - [chojiwoong.com](https://chojiwoong.com)
 - Email: chojiwoong.dev@gmail.com
+
+### 🔒 Privacy Policy
+
+- [https://jiwoong26.github.io/no_add_flashlight/privacy-policy](https://jiwoong26.github.io/no_add_flashlight/privacy-policy)
 
 ### 💬 Contact & Bug Reports
 
