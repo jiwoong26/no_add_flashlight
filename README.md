@@ -1,4 +1,4 @@
-# No Ad Flashlight / 광고 없는 플래시라이트
+# No Ads Flashlight / 광고 없는 플래시라이트
 
 <div align="center">
 
@@ -16,7 +16,7 @@
 
 ### 📱 프로젝트 소개
 
-**No Ad Flashlight**는 광고가 전혀 없는 무료 플래시라이트 앱입니다. 
+**No Ads Flashlight**는 광고가 전혀 없는 무료 플래시라이트 앱입니다. 
 플레이 스토어의 많은 플래시라이트 앱들이 광고로 가득 차 있고 사용이 불편해서, 
 부모님과 모든 사람들이 편하게 사용할 수 있도록 만들었습니다.
 
@@ -130,7 +130,7 @@ android/
 #### 위젯 사용
 
 1. 홈 화면을 길게 눌러 위젯 추가 모드로 진입합니다
-2. "No Ad Flashlight" 위젯을 찾습니다
+2. "No Ads Flashlight" 위젯을 찾습니다
 3. 위젯을 홈 화면에 배치합니다
 4. 위젯 크기를 정사각형 비율로 조절할 수 있습니다
 5. 위젯을 탭하여 플래시를 켜거나 끕니다
@@ -173,7 +173,7 @@ android/
 
 ### 📱 Project Overview
 
-**No Ad Flashlight** is a completely ad-free flashlight app. 
+**No Ads Flashlight** is a completely ad-free flashlight app. 
 Many flashlight apps on the Play Store are cluttered with ads and difficult to use, 
 so I created this app for my parents and everyone to use comfortably.
 
@@ -287,7 +287,7 @@ android/
 #### Using the Widget
 
 1. Long press on the home screen to enter widget mode
-2. Find the "No Ad Flashlight" widget
+2. Find the "No Ads Flashlight" widget
 3. Place the widget on your home screen
 4. You can resize the widget in square ratios
 5. Tap the widget to turn the flashlight on or off

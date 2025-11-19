@@ -7,7 +7,7 @@
     <uses-feature android:name="android.hardware.camera.flash" android:required="false"/>
     
     <application
-        android:label="No Ad Flashlight"
+        android:label="No Ads Flashlight"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
