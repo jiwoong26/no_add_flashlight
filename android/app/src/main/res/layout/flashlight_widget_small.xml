@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1x1 작은 위젯 레이아웃 (텍스트 없음) -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="4dp">
+
+    <LinearLayout
+        android:id="@+id/widget_button"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/flashlight_widget_background_off"
+        android:clickable="true"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/widget_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_flashlight_off"
+            android:contentDescription="@string/app_name" />
+
+    </LinearLayout>
+
+</FrameLayout>
+
