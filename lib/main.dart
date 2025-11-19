@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'No Ad Flashlight',
+      title: 'No Ads Flashlight',
       debugShowCheckedModeBanner: false,
       
       // Material Design 3 테마

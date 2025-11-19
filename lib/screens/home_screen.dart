@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Text(
-                        'No Ad Flashlight\n광고 없는 플래시라이트',
+                        'No Ads Flashlight\n광고 없는 플래시라이트',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
