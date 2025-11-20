@@ -1,4 +1,4 @@
-package com.chojiwoong.noadsflashlight
+package com.chojiwoong.flashligth
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -15,7 +15,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.chojiwoong.noadsflashlight/flashlight"
+    private val CHANNEL = "com.chojiwoong.flashligth/flashlight"
     private var cameraManager: CameraManager? = null
     private var cameraId: String? = null
     private var isFlashlightOn = false

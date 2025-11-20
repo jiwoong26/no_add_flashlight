@@ -7,7 +7,7 @@ class FlashlightService {
   factory FlashlightService() => _instance;
   FlashlightService._internal();
 
-  static const platform = MethodChannel('com.chojiwoong.noadsflashlight/flashlight');
+  static const platform = MethodChannel('com.chojiwoong.flashligth/flashlight');
 
   bool _isOn = false;
   double _brightness = 1.0; // 0.0 ~ 1.0

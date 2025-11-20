@@ -44,7 +44,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.chojiwoong.noadsflashlight.TOGGLE_FLASHLIGHT" />
+                <action android:name="com.chojiwoong.flashligth.TOGGLE_FLASHLIGHT" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
