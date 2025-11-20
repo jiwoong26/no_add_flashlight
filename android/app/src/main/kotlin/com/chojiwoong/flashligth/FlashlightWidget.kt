@@ -1,4 +1,4 @@
-package com.chojiwoong.noadsflashlight
+package com.chojiwoong.flashligth
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat
 class FlashlightWidget : AppWidgetProvider() {
     
     companion object {
-        const val ACTION_TOGGLE_FLASHLIGHT = "com.chojiwoong.noadsflashlight.TOGGLE_FLASHLIGHT"
+        const val ACTION_TOGGLE_FLASHLIGHT = "com.chojiwoong.flashligth.TOGGLE_FLASHLIGHT"
         // Flutter SharedPreferences와 동일한 이름 사용
         private const val PREFS_NAME = "FlutterSharedPreferences"
         private const val PREF_IS_ON = "flutter.flashlight_is_on"
