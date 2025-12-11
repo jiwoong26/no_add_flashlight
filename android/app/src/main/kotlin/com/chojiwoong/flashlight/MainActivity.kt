@@ -1,4 +1,4 @@
-package com.chojiwoong.flashligth
+package com.chojiwoong.flashlight
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -16,8 +16,8 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.chojiwoong.flashligth/flashlight"
-    private val EVENT_CHANNEL = "com.chojiwoong.flashligth/flashlight_event"
+    private val CHANNEL = "com.chojiwoong.flashlight/flashlight"
+    private val EVENT_CHANNEL = "com.chojiwoong.flashlight/flashlight_event"
     private var cameraManager: CameraManager? = null
     private var cameraId: String? = null
     private var isFlashlightOn = false

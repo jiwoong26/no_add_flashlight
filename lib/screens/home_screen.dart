@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/flashlight_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,14 +18,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // 플래시 상태 변경 리스너 등록
     _flashlight.onStateChanged = (isOn) {
       if (mounted) {
         setState(() {});
       }
     };
-    
+
     _initialize();
   }
 
@@ -55,10 +56,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _syncFlashlightState() async {
-    print('🔵 HomeScreen - _syncFlashlightState START, current isOn: ${_flashlight.isOn}');
+    print(
+      '🔵 HomeScreen - _syncFlashlightState START, current isOn: ${_flashlight.isOn}',
+    );
     // SharedPreferences에서 실제 상태 로드하고 UI 업데이트
     await _flashlight.loadState();
-    print('🔵 HomeScreen - _syncFlashlightState AFTER loadState, isOn: ${_flashlight.isOn}');
+    print(
+      '🔵 HomeScreen - _syncFlashlightState AFTER loadState, isOn: ${_flashlight.isOn}',
+    );
     if (mounted) {
       setState(() {});
       print('🔵 HomeScreen - setState() called, UI updated');
@@ -70,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _initialize() async {
     final available = await _flashlight.isAvailable();
     await _flashlight.loadState();
-    
+
     setState(() {
       _isAvailable = available;
       _isLoading = false;
@@ -92,8 +97,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!_isAvailable) return;
 
     final success = await _flashlight.toggle();
-    
+
     if (success) {
+      // 햅틱 피드백 추가
+      await HapticFeedback.mediumImpact();
       // 성공 시 위젯 업데이트
       await _flashlight.updateWidget();
     } else if (mounted) {
@@ -108,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       );
     }
-    
+
     setState(() {});
   }
 
@@ -121,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -129,20 +136,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: _flashlight.isOn
-                ? [
-                    Colors.yellow.shade200,
-                    Colors.orange.shade100,
-                    Colors.white,
-                  ]
+                ? [Colors.yellow.shade200, Colors.orange.shade100, Colors.white]
                 : isDark
-                    ? [
-                        Colors.grey.shade900,
-                        Colors.black,
-                      ]
-                    : [
-                        Colors.grey.shade100,
-                        Colors.grey.shade200,
-                      ],
+                ? [Colors.grey.shade900, Colors.black]
+                : [Colors.grey.shade100, Colors.grey.shade200],
           ),
         ),
         child: SafeArea(
@@ -152,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Spacer(),
-                    
+
                     // 플래시 상태 텍스트
                     Text(
                       _flashlight.isOn ? '플래시 켜짐' : '플래시 꺼짐',
@@ -163,9 +160,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             : theme.colorScheme.onSurface,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 60),
-                    
+
                     // 플래시 토글 버튼
                     GestureDetector(
                       onTap: _isAvailable ? _toggleFlashlight : null,
@@ -208,9 +205,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 60),
-                    
+
                     // 밝기 조절 섹션
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -239,7 +236,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             children: [
                               Icon(
                                 Icons.brightness_low,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                               Expanded(
                                 child: SliderTheme(
@@ -263,7 +262,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     inactiveColor: Colors.grey.shade300,
                                     onChanged: _isAvailable
                                         ? (value) async {
-                                            await _handleBrightnessChange(value);
+                                            await _handleBrightnessChange(
+                                              value,
+                                            );
                                           }
                                         : null,
                                   ),
@@ -271,7 +272,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                               Icon(
                                 Icons.brightness_high,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ],
                           ),
@@ -279,23 +282,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           Text(
                             'Android 13 이상에서 밝기 조절이 가능합니다.',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     ),
-                    
+
                     const Spacer(),
-                    
+
                     // 앱 정보
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Text(
                         'No Ads Flashlight\n광고 없는 플래시라이트',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -307,4 +314,3 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 }
-
