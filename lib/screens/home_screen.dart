@@ -17,12 +17,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // 플래시 상태 변경 리스너 등록
+    _flashlight.onStateChanged = (isOn) {
+      if (mounted) {
+        setState(() {});
+      }
+    };
+    
     _initialize();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    // 리스너 해제 (중요: 메모리 누수 방지 및 다른 곳에서 사용 시 충돌 방지)
+    _flashlight.onStateChanged = null;
     _flashlight.dispose();
     super.dispose();
   }

@@ -5,18 +5,58 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FlashlightService {
   static final FlashlightService _instance = FlashlightService._internal();
   factory FlashlightService() => _instance;
-  FlashlightService._internal();
-
   static const platform = MethodChannel('com.chojiwoong.flashligth/flashlight');
+  static const eventChannel = EventChannel(
+    'com.chojiwoong.flashligth/flashlight_event',
+  );
 
   bool _isOn = false;
   double _brightness = 1.0; // 0.0 ~ 1.0
-  
+
+  // 상태 변경 알림을 위한 콜백
+  Function(bool)? onStateChanged;
+
   static const String _keyIsOn = 'flashlight_is_on';
   static const String _keyBrightness = 'flashlight_brightness';
-  
+
   bool get isOn => _isOn;
   double get brightness => _brightness;
+
+  FlashlightService._internal() {
+    // 생성 시 이벤트 리스너 등록
+    _initEventChannel();
+  }
+
+  void _initEventChannel() {
+    eventChannel.receiveBroadcastStream().listen(
+      (event) {
+        if (event is bool) {
+          _handleSystemFlashlightChange(event);
+        }
+      },
+      onError: (error) {
+        print('❌ FlashlightService - EventChannel error: $error');
+      },
+    );
+  }
+
+  /// 시스템(네이티브)에서 플래시 상태가 변경되었을 때 처리
+  Future<void> _handleSystemFlashlightChange(bool newState) async {
+    // 상태가 실제 변경되었을 때만 처리
+    if (_isOn != newState) {
+      print('⚡ FlashlightService - System flashlight changed: $newState');
+      _isOn = newState;
+
+      // 상태 저장 및 위젯 업데이트
+      await _saveState();
+      await updateWidget();
+
+      // UI에 알림
+      if (onStateChanged != null) {
+        onStateChanged!(_isOn);
+      }
+    }
+  }
 
   /// 플래시 사용 가능 여부 확인
   Future<bool> isAvailable() async {
@@ -32,16 +72,18 @@ class FlashlightService {
   Future<void> loadState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // 🔥 중요: 네이티브에서 변경된 값을 읽기 위해 캐시를 무효화하고 디스크에서 다시 로드
       await prefs.reload();
       print('🟢 FlashlightService - SharedPreferences reloaded from disk');
-      
+
       _brightness = prefs.getDouble(_keyBrightness) ?? 1.0;
       final savedIsOn = prefs.getBool(_keyIsOn) ?? false;
-      
-      print('🟢 FlashlightService - loadState: savedIsOn=$savedIsOn, current _isOn=$_isOn');
-      
+
+      print(
+        '🟢 FlashlightService - loadState: savedIsOn=$savedIsOn, current _isOn=$_isOn',
+      );
+
       // 상태가 다를 때만 플래시 동기화
       if (savedIsOn != _isOn) {
         print('🟢 FlashlightService - State mismatch! Syncing...');
@@ -114,7 +156,7 @@ class FlashlightService {
       final bool? result = await platform.invokeMethod('turnOn', {
         'brightness': _brightness,
       });
-      
+
       if (result == true) {
         _isOn = true;
         await _saveState();
@@ -131,7 +173,7 @@ class FlashlightService {
   Future<bool> turnOff() async {
     try {
       final bool? result = await platform.invokeMethod('turnOff');
-      
+
       if (result == true) {
         _isOn = false;
         await _saveState();
@@ -158,7 +200,7 @@ class FlashlightService {
   Future<bool> setBrightness(double value) async {
     _brightness = value.clamp(0.0, 1.0);
     await _saveState();
-    
+
     // 플래시가 켜져 있으면 실시간으로 밝기 변경
     if (_isOn) {
       try {
@@ -181,4 +223,3 @@ class FlashlightService {
     }
   }
 }
-
