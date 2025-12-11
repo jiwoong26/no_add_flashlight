@@ -1,4 +1,4 @@
-package com.chojiwoong.flashligth
+package com.chojiwoong.flashlight
 
 import android.app.*
 import android.content.Context
@@ -19,8 +19,8 @@ class FlashlightForegroundService : Service() {
         private const val TAG = "FlashlightService"
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "flashlight_service_channel"
-        const val ACTION_START = "com.chojiwoong.flashligth.ACTION_START"
-        const val ACTION_STOP = "com.chojiwoong.flashligth.ACTION_STOP"
+        const val ACTION_START = "com.chojiwoong.flashlight.ACTION_START"
+        const val ACTION_STOP = "com.chojiwoong.flashlight.ACTION_STOP"
         const val EXTRA_BRIGHTNESS = "brightness"
         
         private var isServiceRunning = false

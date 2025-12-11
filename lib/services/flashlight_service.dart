@@ -5,9 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FlashlightService {
   static final FlashlightService _instance = FlashlightService._internal();
   factory FlashlightService() => _instance;
-  static const platform = MethodChannel('com.chojiwoong.flashligth/flashlight');
+  static const platform = MethodChannel('com.chojiwoong.flashlight/flashlight');
   static const eventChannel = EventChannel(
-    'com.chojiwoong.flashligth/flashlight_event',
+    'com.chojiwoong.flashlight/flashlight_event',
   );
 
   bool _isOn = false;
