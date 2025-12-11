@@ -12,23 +12,77 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.chojiwoong.flashligth/flashlight"
+    private val EVENT_CHANNEL = "com.chojiwoong.flashligth/flashlight_event"
     private var cameraManager: CameraManager? = null
     private var cameraId: String? = null
     private var isFlashlightOn = false
     private var currentBrightness = 1.0f
+    
+    // EventChannel Sink (Flutter로 이벤트를 보내는 객체)
+    private var eventSink: EventChannel.EventSink? = null
+
+    // 토치 콜백 정의
+    private val torchCallback = object : CameraManager.TorchCallback() {
+        override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
+            super.onTorchModeChanged(cameraId, enabled)
+            // 현재 사용 중인 카메라 ID와 일치할 때만 처리
+            if (cameraId == this@MainActivity.cameraId) {
+                Log.d("MainActivity", "onTorchModeChanged: $enabled")
+                isFlashlightOn = enabled
+                
+                // Flutter로 상태 전달
+                runOnUiThread {
+                    eventSink?.success(enabled)
+                }
+                
+                // 시스템에 의해 꺼진 경우 서비스도 중지 등 처리
+                if (!enabled) {
+                     stopFlashlightService()
+                } else {
+                     // 켜졌는데 서비스가 안돌고 있다면 (외부에서 켠 경우) 서비스 시작 고려
+                     // 하지만 외부에서 켠 경우 밝기 값을 알 수 없으므로 기본적으로는 상태 동기화에 집중
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
         findCameraWithFlash()
+        
+        // 콜백 등록
+        cameraManager?.registerTorchCallback(torchCallback, null)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // 콜백 해제
+        cameraManager?.unregisterTorchCallback(torchCallback)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // EventChannel 설정
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    eventSink = events
+                    // 연결되자마자 현재 상태 한번 보냄
+                    events?.success(isFlashlightOn)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    eventSink = null
+                }
+            }
+        )
         
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
