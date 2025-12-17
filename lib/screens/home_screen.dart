@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import '../services/flashlight_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -99,8 +99,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final success = await _flashlight.toggle();
 
     if (success) {
-      // 햅틱 피드백 추가
-      await HapticFeedback.mediumImpact();
       // 성공 시 위젯 업데이트
       await _flashlight.updateWidget();
     } else if (mounted) {
